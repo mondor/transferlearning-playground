@@ -1,0 +1,17 @@
+*.jpg
+*.png
+*.pth
+*.csv
+.ipynb_checkpoints
+.ipynb_checkpoints/*
+*.pkl
+*.txt
+*.ann
+*.pt
+*.zip
+*.tar.gz
+*.gz
+__MACOSX
+.DS_Store
+._.DS_Store
+data/all_images
