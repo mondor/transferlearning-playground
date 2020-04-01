@@ -15,3 +15,5 @@ __MACOSX
 .DS_Store
 ._.DS_Store
 data/all_images
+*.tsv
+*.log
