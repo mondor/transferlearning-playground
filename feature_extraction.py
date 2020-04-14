@@ -15,6 +15,8 @@ from torchvision import transforms
 import tqdm
 import pickle
 
+train_on_gpu = torch.cuda.is_available()
+
 def get_filtered_df(df_file, all_images_path):
     df = pd.read_csv(df_file, header=None, names=["id", "image", "published", "disabled"])
     df['available'] = 0
@@ -40,10 +42,14 @@ def to_small_image(df, all_images_path, resized_images_path):
             img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
             cv2.imwrite(os.path.join(resized_images_path, _id + ".jpg"), img)
 
+
             
 def feature_extraction(df, images_path, image_map_file):
     model = torchvision.models.resnet50(pretrained=True)
 
+    if train_on_gpu:
+        model = model.cuda()
+        
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
     inv_normalize = transforms.Normalize(
        mean=[-0.485/0.229, -0.456/0.224, -0.406/0.225],
@@ -66,21 +72,30 @@ def feature_extraction(df, images_path, image_map_file):
         file = os.path.join(images_path, _id + '.jpg')
         img = mpimg.imread(file)
         img = transformer(img)    
+        
+        if train_on_gpu:
+            img = img.cuda()
+            
         img_rep = feature_extraction_model(img.unsqueeze(0))
-        image_map[_id] = img_rep.squeeze().detach().numpy()
+        features = img_rep.squeeze().cpu().data.numpy()        
+        image_map[_id] = features
+        
+        # free up GPU Memory
+        del img_rep
     
     with open(image_map_file, 'wb') as f:
         pickle.dump(image_map, f)
             
 
-def main():
-    
+def main():    
     all_images_path = 'data/all_images'
-    resized_images_path = 'data/small_images'
-    image_map_file = 'image_map_small.pkl'
-    
+    image_map_file = 'image_map_resnet50.pkl'    
     df = get_filtered_df('data.csv', all_images_path)
-    feature_extraction(df, resized_images_path, image_map_file)
+    
+    #feature_extraction(df, all_images_path, image_map_file)
+    
+    resized_images_path = 'data/small_images'
+    to_small_image(df, all_images_path, resized_images_path) 
     
     
 if __name__ == '__main__':

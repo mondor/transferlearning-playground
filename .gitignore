@@ -1,5 +1,8 @@
 *.jpg
+*.JPG
+*.jpeg
 *.png
+*.PNG
 *.pth
 *.csv
 .ipynb_checkpoints
@@ -17,3 +20,4 @@ __MACOSX
 data/all_images
 *.tsv
 *.log
+*.tar
